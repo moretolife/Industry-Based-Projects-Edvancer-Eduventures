@@ -1,0 +1,207 @@
+---
+title: " Wine Quality Segmentation: K Means CLustering "
+author: "Neha More"
+date: "December 1, 2017"
+output: html_document
+---
+
+###Problem Statement:
+Wine quality depends on a lot of factors like alcohol content,presence of sulphates,its pH values etc.The taste,smell and potency of the wine is defined by its chemical ingredients and its percentages in wines. A restaurant needs to classify its wines into different categories depending on its ingredients and label it accordingly for its different category of customers. 
+
+###Aim: 
+Using K-means clustering algorithm classify the wines into appropriate distinguished optimal clusters having similar properties in each cluster.
+
+###Data Dictionary:
+winequality-red.csv consists of 1599 observations of wines having 12 variables.
+Use variables pH, alcohol, sulphates and total.sulpur.dioxide to segment the dataset appropriately using k means clustering algorithm.
+
+
+###Initial Setup:
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(cluster)
+```
+
+###Step 1 : Reading and standardizing dataset as per the requirements.
+
+```{r}
+wine=read.csv("winequality-red.csv",sep=";")
+glimpse(wine) #1599 obs and 12 variables.
+```
+
+#####Lets select four variables which we think will help us to form good clusters.
+
+```{r}
+wine=wine %>%
+  select(pH,sulphates,alcohol,total.sulfur.dioxide)
+glimpse(wine)
+```
+
+#####Lets further standardise each variables of the dataset wine.
+
+```{r}
+md=function(x){
+  return((x-mean(x))/sd(x))
+}
+```
+
+```{r}
+wine_std=wine %>%
+  mutate(pH=md(pH),
+         sulphates=md(sulphates),
+         alcohol=md(alcohol),
+         total.sulfur.dioxide=md(total.sulfur.dioxide))
+```
+
+#####Lets check the summary of wine and wine_std datasets:
+
+```{r}
+summary(wine)
+summary(wine_std)
+```
+
+
+#####Thus out dataset is standardized and can be further used for implementing algorithm.
+
+
+###Step 2: Using K mean clustering for k=1 to 15 and determine best value of K.
+
+####We will find clusters for values of k=1 to 15 and record the values of SSW for each K and then plot (K Vs SSW)
+
+```{r}
+mydata <- wine_std
+
+```
+```{r}
+wss <- (nrow(mydata)-1)*sum(apply(mydata,2,var))
+#finding within sum of squares
+```
+```{r}
+for (i in 2:15) wss[i] <- sum(kmeans(mydata,centers=i)$withinss)
+#for k=2 to 15,kmeans function takes two arguments(data, and i) and thus finding SSW for each K=i(2 to 15) and storing it in vector wss[i]
+```
+
+
+#####Lets plot SSW vs K values:
+
+```{r}
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares",col="mediumseagreen",pch=12)
+#
+```
+
+
+
+#####The plot shows that K=5/6 is perfect choice of K.
+
+#####Thus the plot shows that the number of groups to choose is 5.
+
+#####Hence lets run K means algorithm for k=5 and find clusters in mydata.(i.e. wine_std)
+
+###Step 3: Use k=5 and make 5 clusters by K means algorithm in dataset wine_std.
+
+```{r}
+fit <- kmeans(mydata,5 ) 
+#running kmeans for mydata dataset with k=5 and storing the result in fit.
+```
+fit$cluster will give the cluster in which the obs go to.Lets Store it in mydata dataset with header cluster.
+```{r}
+mydata$cluster=fit$cluster
+#or same as:
+wine_std$cluster=fit$cluster
+```
+
+
+###Step 4: Making Pair wise profiling plots and labelling wines with respect to its ingredients:
+
+
+#####Plotting alcohol Vs pH clusters:
+```{r}
+ggplot(wine_std,aes(pH,alcohol,color=as.factor(cluster)))+geom_point()
+
+```
+
+
+
+#####Plotting pH vs Sulphates groups:
+```{r}
+ggplot(wine_std,aes(pH,sulphates,color=as.factor(cluster)))+geom_point()
+
+```
+
+
+#####Plotting pH vs total sulfur dioxide groups:
+```{r}
+ggplot(wine_std,aes(pH,total.sulfur.dioxide,color=as.factor(cluster)))+geom_point()
+
+```
+
+
+  
+#####Plotting alcohol vs sulphates groups:
+```{r}
+ggplot(wine_std,aes(alcohol,sulphates,color=as.factor(cluster)))+geom_point()
+
+```
+
+
+#####Plotting alcohol vs total.sulpur.dioxide groups:
+```{r}
+ggplot(wine_std,aes(alcohol,total.sulfur.dioxide,color=as.factor(cluster)))+geom_point()
+
+```
+
+
+
+#####Plotting sulphates vs total.sulfur.dioxide groups:
+```{r}
+ggplot(wine_std,aes(sulphates,total.sulfur.dioxide,color=as.factor(cluster)))+geom_point()
+
+```
+
+###Inferences from plots:
+
+>  Cluster 1:low pH,high sulphates,low alcohol
+
+>  Cluster 2:high pH,low sulphates,high alcohol,low total.sulpur.dioxide
+
+>  Cluster 3:Low alcohol,low sulphates,high total.sulpur.dioxide
+
+>  Cluster 4:high alcohol,low pH,low total.sulpur.dioxide
+
+>  Cluster 5:Low alcohol,low sulphates,low total.sulphur.dioxide
+
+
+###Step 5:Numerical inferences:
+```{r}
+apply(wine,2,function(x)tapply(x,wine_std$cluster,mean))
+```
+##**Conclusion:**
+#####*Thus we see that:*
+
+#####*pH is high in cluster 2 and low in cluster 1.*
+
+#####*Sulphates is high in cluster 1 and low in cluster 3.*
+
+#####*Alcohol is high in cluster 2 & 4 and low in Rest of the clusters(1,3,5).*
+
+#####*Total.sulput.dioxide is high in cluster 3 and low in cluster 4.*
+
+
+###Step 6: Plotting silhouette.
+#####Lets plot silhouette and determine whether the 5 clusters members were well-assigned:
+
+```{r}
+diss=daisy(wine_std)
+sk=silhouette(wine_std$cluster,diss)
+plot(sk)
+```
+
+#####Average silhouette width is 0.4.
+
+
+####*Thus we can say, clusters are well-assigned respectively.*
+
+
