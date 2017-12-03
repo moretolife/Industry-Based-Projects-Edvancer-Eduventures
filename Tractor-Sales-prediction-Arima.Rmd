@@ -1,6 +1,5 @@
 ---
-title: "Forecast Tractor Sales
-using ARIMA Model"
+title: "Forecast Tractor Sales using Time Series ARIMA Model"
 author: "Neha More"
 date: "December 3, 2017"
 output: html_document
@@ -116,7 +115,7 @@ As expected, our model has I (or integrated) component equal to 1. This represen
 
 There is additional differencing of lag 12 in the above best fit model. Moreover, the best fit model has MA value of order 1. Also, there is seasonal MA with lag 12 of order 1.
 
-###Step 6: Forecast sales using the best fit ARIMA model
+###Step 7: Forecast sales using the best fit ARIMA model
 
 The next step is to predict tractor sales for next 3 years i.e. for 2015, 2016, and 2017 through the above model.
 
@@ -139,7 +138,7 @@ The above is the output with forecasted values of tractor sales in blue. Also, t
 Assumptions while forecasting:
 Forecasts for a long period of 3 years is an ambitious task. The major assumption here is that the underlining patterns in the time series will continue to stay the same as predicted in the model. A short-term forecasting model, say a couple of business quarters or a year, is usually a good idea to forecast with reasonable accuracy. A long-term model like the one above needs to evaluated on a regular interval of time (say 6 months). The idea is to incorporate the new information available with the passage of time in the model.
 
-###Step 7: Plot ACF and PACF for residuals of ARIMA model to ensure no more information is left for extraction.
+###Step 8: Plot ACF and PACF for residuals of ARIMA model to ensure no more information is left for extraction.
 
 Finally, let's create an ACF and PACF plot of the residuals of our best fit ARIMA model i.e. ARIMA(0,1,1)(0,1,1)[12].
 ```{r}
